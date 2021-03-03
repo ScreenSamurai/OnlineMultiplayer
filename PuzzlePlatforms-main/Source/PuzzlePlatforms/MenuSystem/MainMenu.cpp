@@ -4,6 +4,7 @@
 #include "MainMenu.h"
 #include "Components/Button.h"
 #include "Components/Widget.h"
+#include "GameFramework/PlayerController.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/EditableTextBox.h"
 
@@ -25,13 +26,11 @@ bool UMeinManu::Initialize()
 	if (!ensure(CancelButton != nullptr))return false;
 	CancelButton->OnClicked.AddDynamic(this, &UMeinManu::CancelMenu);
 
+	if (!ensure(QuitButton != nullptr))return false;
+	QuitButton->OnClicked.AddDynamic(this, &UMeinManu::QuitGame);
+
 
 	return true;
-}
-
-void UMeinManu::SetMenuInterface(IMenuInterface* MenuInterface)
-{
-	this->InMenuInterface = MenuInterface;
 }
 
 void UMeinManu::HostServer()
@@ -65,36 +64,13 @@ void UMeinManu::CancelMenu()
 	MenuSwitcher->SetActiveWidgetIndex(0);
 }
 
-void UMeinManu::Setup()
+void UMeinManu::QuitGame()
 {
-	this->AddToViewport();
-
-	UWorld* World = GetWorld();
-	if (!ensure(World != nullptr))return;
-
-	APlayerController* PlayerController = World->GetFirstPlayerController();
-	if (!ensure(PlayerController != nullptr))return;
-
-	FInputModeUIOnly InputModeDate;
-	InputModeDate.SetWidgetToFocus(this->TakeWidget());
-	InputModeDate.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-
-	PlayerController->SetInputMode(InputModeDate);
-	PlayerController->bShowMouseCursor = true;
-}
-
-void UMeinManu::Teardown()
-{
-	this->RemoveFromViewport();
-
 	UWorld* World = GetWorld();
 	if (!ensure(World != nullptr)) return;
 
 	APlayerController* PlayerController = World->GetFirstPlayerController();
 	if (!ensure(PlayerController != nullptr)) return;
 
-	FInputModeGameOnly InputModeData;
-	PlayerController->SetInputMode(InputModeData);
-
-	PlayerController->bShowMouseCursor = false;
+	PlayerController->ConsoleCommand("Quit");
 }
