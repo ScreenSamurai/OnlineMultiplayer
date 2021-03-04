@@ -37,6 +37,8 @@ public:
 	UFUNCTION(Exec)
 	void JoinMainMenu() override;
 
+	void RefreshServerList() override;
+
 private:
 	TSubclassOf<class UUserWidget> MenuClass;
 	TSubclassOf<class UUserWidget> InGameMenuClass;
@@ -44,9 +46,10 @@ private:
 	UMeinManu* Menu;
 
 	IOnlineSessionPtr SessionInterface;
+	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 
 	void OnCreateSessionComplete(FName SessionName, bool Success);
 	void OnDestroySessionComplete(FName SessionName, bool Success);
-
+	void OnFindSessionsComplete(bool Success);
 	void CreateSession();
 };

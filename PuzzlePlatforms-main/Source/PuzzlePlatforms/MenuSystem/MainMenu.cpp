@@ -4,10 +4,21 @@
 #include "MainMenu.h"
 #include "Components/Button.h"
 #include "Components/Widget.h"
+#include "UObject/ConstructorHelpers.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/EditableTextBox.h"
+#include "Components/TextBlock.h"
 
+#include "ServerRow.h"
+
+UMeinManu::UMeinManu(const FObjectInitializer& ObjectInitializer)
+{
+	ConstructorHelpers::FClassFinder<UUserWidget> ServerRowBPClass(TEXT("/Game/MenuSystem/WBP_ServerRow"));
+	if (!ensure(ServerRowBPClass.Class != nullptr)) return;
+
+	ServerRowClass = ServerRowBPClass.Class;
+}
 
 bool UMeinManu::Initialize()
 {
@@ -45,8 +56,27 @@ void UMeinManu::JoinServer()
 {
 	if (InMenuInterface != nullptr)
 	{
-		if (!ensure(IPAddresField != nullptr))return;
-		InMenuInterface->Join(IPAddresField->GetText().ToString());
+		/*if (!ensure(ipaddresfield != nullptr))return;
+		inmenuinterface->join(ipaddresfield->gettext().tostring());*/
+		InMenuInterface->Join("");
+	}
+}
+
+void UMeinManu::SetServerList(TArray<FString> ServerNames)
+{
+	UWorld* World = this->GetWorld();
+	if (!ensure(World != nullptr)) return;
+
+	ServerList->ClearChildren();
+
+	for (const FString& ServerName : ServerNames)
+	{
+		UServerRow* Row = CreateWidget<UServerRow>(World, ServerRowClass);
+		if (!ensure(Row != nullptr)) return;
+
+		Row->ServerName->SetText(FText::FromString(ServerName));
+
+		ServerList->AddChild(Row);
 	}
 }
 
@@ -55,6 +85,10 @@ void UMeinManu::OpenJoinMenu()
 	if (!ensure(MenuSwitcher != nullptr))return ;
 	if (!ensure(JoinMenu != nullptr))return;
 	MenuSwitcher->SetActiveWidgetIndex(1);
+	if (InMenuInterface != nullptr)
+	{
+		InMenuInterface->RefreshServerList();
+	}
 }
 
 void UMeinManu::CancelMenu()
