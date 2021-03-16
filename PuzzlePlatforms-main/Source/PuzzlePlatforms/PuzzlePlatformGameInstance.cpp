@@ -12,7 +12,7 @@
 #include "PlatformTrigger.h"
 #include "MenuSystem/MainMenu.h"
 
-const static FName SESSION_NAME = TEXT("My Session Game");
+const static FName SESSION_NAME = TEXT("Game");
 const static FName SERVER_NAME_SETTING_KEY = TEXT("Server Name");
 
 UPuzzlePlatformGameInstance::UPuzzlePlatformGameInstance(const FObjectInitializer& ObjectIn)
@@ -46,6 +46,10 @@ void UPuzzlePlatformGameInstance::Init()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("not found subsystem"));
+	}
+	if (GEngine != nullptr)
+	{
+		GEngine->OnNetworkFailure().AddUObject(this, &UPuzzlePlatformGameInstance::OnNetworkFailure);
 	}
 }
 
@@ -111,7 +115,7 @@ void UPuzzlePlatformGameInstance::OnCreateSessionComplete(FName SessionName, boo
 	UWorld* World = GetWorld();
 	if (!ensure(World != nullptr))return;
 
-	World->ServerTravel("/Game/ThirdPersonCPP/Maps/ThirdPersonExampleMap?listen");
+	World->ServerTravel("/Game/ThirdPersonCPP/Maps/Lobby?listen");
 }
 
 void UPuzzlePlatformGameInstance::OnDestroySessionComplete(FName SessionName, bool Success) 
@@ -220,10 +224,23 @@ void UPuzzlePlatformGameInstance::OnSessionComplete(FName SessionName, EOnJoinSe
 	PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
 }
 
+void UPuzzlePlatformGameInstance::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorsString)
+{
+	LoadMenuWidget();
+}
+
 void UPuzzlePlatformGameInstance::JoinMainMenu()
 {
 	APlayerController* PlayerController = GetFirstLocalPlayerController();
 
 	if (!ensure(PlayerController != nullptr))return;
 	PlayerController->ClientTravel("/Game/MenuSystem/MainMenu", ETravelType::TRAVEL_Absolute);
+}
+
+void UPuzzlePlatformGameInstance::StartSession()
+{
+	if (SessionInterface.IsValid())
+	{
+		SessionInterface->StartSession(SESSION_NAME);
+	}
 }
